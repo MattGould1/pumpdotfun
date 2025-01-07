@@ -1,31 +1,23 @@
 {
-  "name": "nodejs-typescript-modern-starter",
-  "version": "1.0.0",
+  "name": "pumpdotfun",
+  "version": "0.0.1",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "bin": {
-    "nodejs-typescript-modern-starter": "dist/src/index.js",
-    "ntms": "dist/src/index.js"
+    "pumpdotfun": "dist/src/index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xddq/schema2typebox.git"
   },
   "keywords": [
-    "nodejs",
-    "typescript",
-    "modern",
-    "starter",
-    "nodejs typescript modern starter",
-    "debugging",
-    "ts",
-    "esbuild",
-    "prettier",
-    "typescript5",
-    "CI/CD",
-    "minimal"
+    "pumpdotfun",
+    "pump",
+    "fun",
+    "pump fun client",
+    "pump fun api"
   ],
-  "author": "Pierre Dahmani <hi@pierre-dev.com>",
+  "author": "Matthew Gould <matt@saowapan.com>",
   "license": "MIT",
   "scripts": {
     "bundle": "rimraf dist && esbuild --outdir=dist --sourcemap --bundle --platform=node --target=node20.10.0 ./src/index.ts",
