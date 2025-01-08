@@ -1,4 +1,4 @@
-import { WSTradeCreatedMsg } from "src/pumpfun/types";
+import { WSTradeCreated } from "src/pumpfun/types";
 
 export type ProcessedMessage =
   | {
@@ -15,11 +15,19 @@ export type ProcessedMessage =
       method: "keepAlive";
       data: number;
     }
+  | MessageHandlerMessage
   | {
-      method: "tradeCreated";
-      data: WSTradeCreatedMsg[1];
+      error: true;
+      msg: string;
     }
-  | false;
+  | {
+      error: false;
+    };
+
+export type MessageHandlerMessage = {
+  method: "tradeCreated";
+  data: WSTradeCreated;
+};
 
 export type ConnectionInformation = {
   sid: string;
@@ -29,4 +37,5 @@ export type ConnectionInformation = {
   maxPayload: number;
 };
 
-export type TradeCreatedHandler = (data: WSTradeCreatedMsg[1]) => unknown;
+export type MessageHandler = (data: MessageHandlerMessage) => unknown;
+export type ErrorHandler = (data: { error: true; msg: string }) => unknown;

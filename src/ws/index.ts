@@ -1,10 +1,10 @@
 import WebSocket from "ws";
 import {
   ConnectionInformation,
+  ErrorHandler,
   ProcessedMessage,
-  TradeCreatedHandler,
+  MessageHandler,
 } from "./types";
-import logger from "../utils/logger";
 import assertNever from "assert-never";
 import isObject from "../utils/isObject";
 
@@ -13,14 +13,21 @@ export class WS {
     "wss://frontend-api-v2.pump.fun/socket.io/?EIO=4&transport=websocket";
   private _ws: WebSocket | undefined;
   private _connectionInformation: ConnectionInformation | undefined;
-  private _tradeCreatedHandler: TradeCreatedHandler;
+  private _messageHandler: MessageHandler;
+  private _errorHandler: ErrorHandler;
+  private _isReconnecting = false;
+  private _maxReconnectionAttempts = 3;
+  private _reconnectionAttempts = 0;
 
   constructor({
-    tradeCreatedHandler,
+    messageHandler,
+    errorHandler,
   }: {
-    tradeCreatedHandler: TradeCreatedHandler;
+    messageHandler: MessageHandler;
+    errorHandler: ErrorHandler;
   }) {
-    this._tradeCreatedHandler = tradeCreatedHandler;
+    this._messageHandler = messageHandler;
+    this._errorHandler = errorHandler;
   }
 
   get ws() {
@@ -41,6 +48,22 @@ export class WS {
     this._connectionInformation = value;
   }
 
+  set isReconnecting(value: boolean) {
+    this._isReconnecting = value;
+  }
+
+  get isReconnecting() {
+    return this._isReconnecting;
+  }
+
+  set reconnectionAttempts(value: number) {
+    this._reconnectionAttempts = value;
+  }
+
+  get reconnectionAttempts() {
+    return this._reconnectionAttempts;
+  }
+
   private initConnection(): void {
     /**
      * I have no explanation as to why this is necessary, but it is. Once the connection is established, the server expects a 40 to be sent.
@@ -55,16 +78,32 @@ export class WS {
 
   connect() {
     this.ws.on("open", () => {
+      this.isReconnecting = false;
       this.initConnection();
     });
 
     this.ws.on("close", (code: number) => {
-      logger({ level: "error", msg: `Connect closed: ${code}` });
+      if (this.reconnectionAttempts >= this._maxReconnectionAttempts) {
+        console.error(
+          `Exceeded maximum reconnection attempts. Please check your internet connection and try again.`
+        );
+        return;
+      }
+
+      console.log(`Connection closed ${code} attempting to reconnect...`);
+      this.connect();
+      this.reconnectionAttempts += 1;
+      this.isReconnecting = true;
     });
 
     this.ws.on("message", (msg: Buffer) => {
       const processedMessage = this.processMessage(msg.toString());
-      if (processedMessage === false) {
+      if ("error" in processedMessage) {
+        if (processedMessage.error === false) {
+          return;
+        }
+
+        this._errorHandler(processedMessage);
         return;
       }
 
@@ -77,7 +116,7 @@ export class WS {
           break;
         case "tradeCreated":
           // Pass the trade over to the trade handler
-          this._tradeCreatedHandler(processedMessage.data);
+          this._messageHandler(processedMessage);
           break;
         default:
           return assertNever(processedMessage);
@@ -106,8 +145,10 @@ export class WS {
     const match = msg.match(/^(\d+)(.*)$/);
 
     if (!match) {
-      logger({ level: "error", msg: `Invalid message: ${msg}` });
-      return false;
+      return {
+        error: true,
+        msg: `Invalid message: ${msg}`,
+      };
     }
 
     try {
@@ -124,11 +165,15 @@ export class WS {
           }
           case "40": {
             // ignore
-            return false;
+            return {
+              error: false,
+            };
           }
           default: {
-            logger({ level: "error", msg: `Unknown message: ${msg}` });
-            return false;
+            return {
+              error: true,
+              msg: `Unhandled message: ${msg}`,
+            };
           }
         }
       }
@@ -137,8 +182,10 @@ export class WS {
         !Array.isArray(message) ||
         (Array.isArray(message) && message.length !== 2)
       ) {
-        logger({ level: "error", msg: `Invalid message: ${msg}` });
-        return false;
+        return {
+          error: true,
+          msg: `Invalid message: ${msg}`,
+        };
       }
 
       const method = message[0];
@@ -154,12 +201,16 @@ export class WS {
             data,
           };
         default:
-          logger({ level: "error", msg: `Unhandled method: ${msg}` });
-          return false;
+          return {
+            error: true,
+            msg: `Unhandled message: ${msg}`,
+          };
       }
     } catch (err) {
-      logger({ level: "error", msg: `Unknown error: ${msg} ${err}` });
-      return false;
+      return {
+        error: true,
+        msg: `Unknown error: ${msg} ${err}`,
+      };
     }
   }
 }

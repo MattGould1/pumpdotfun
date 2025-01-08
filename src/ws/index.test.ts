@@ -79,7 +79,7 @@ describe("ws", () => {
       expected: false,
     },
   ])("It parses data - %o", (args) => {
-    const ws = new WS();
+    const ws = new WS({ tradeCreatedHandler: () => {} });
     const result = ws.processMessage(args.msg);
     expect(result).toEqual(args.expected);
   });

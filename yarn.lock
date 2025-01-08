@@ -5104,37 +5104,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodejs-typescript-modern-starter@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "nodejs-typescript-modern-starter@workspace:."
-  dependencies:
-    "@babel/core": "npm:7.26.0"
-    "@babel/preset-env": "npm:7.26.0"
-    "@babel/preset-typescript": "npm:7.26.0"
-    "@jest/globals": "npm:29.7.0"
-    "@tsconfig/node20": "npm:20.1.4"
-    "@types/jest": "npm:29.5.14"
-    "@types/node": "npm:20.17.12"
-    "@types/ws": "npm:^8"
-    "@typescript-eslint/eslint-plugin": "npm:6.21.0"
-    "@typescript-eslint/parser": "npm:6.21.0"
-    assert-never: "npm:^1.4.0"
-    axios: "npm:^1.7.9"
-    esbuild: "npm:0.21.3"
-    eslint: "npm:8.57.1"
-    eslint-config-prettier: "npm:9.1.0"
-    jest: "npm:29.7.0"
-    nodemon: "npm:3.1.9"
-    prettier: "npm:3.4.2"
-    rimraf: "npm:5.0.10"
-    typescript: "npm:5.7.2"
-    ws: "npm:^8.18.0"
-  bin:
-    nodejs-typescript-modern-starter: dist/src/index.js
-    ntms: dist/src/index.js
-  languageName: unknown
-  linkType: soft
-
 "nodemon@npm:3.1.9":
   version: 3.1.9
   resolution: "nodemon@npm:3.1.9"
@@ -5440,6 +5409,36 @@ __metadata:
   checksum: 10/ef13b1b5896b35f67dbd4fb7ba54bb2a5da1a5c317276cbad4bcad4159bf8f7b5e1748dc244bf36865f3d560d2fc952521581280a91468c9c2df166cc760c8c1
   languageName: node
   linkType: hard
+
+"pumpdotfun@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "pumpdotfun@workspace:."
+  dependencies:
+    "@babel/core": "npm:7.26.0"
+    "@babel/preset-env": "npm:7.26.0"
+    "@babel/preset-typescript": "npm:7.26.0"
+    "@jest/globals": "npm:29.7.0"
+    "@tsconfig/node20": "npm:20.1.4"
+    "@types/jest": "npm:29.5.14"
+    "@types/node": "npm:20.17.12"
+    "@types/ws": "npm:^8"
+    "@typescript-eslint/eslint-plugin": "npm:6.21.0"
+    "@typescript-eslint/parser": "npm:6.21.0"
+    assert-never: "npm:^1.4.0"
+    axios: "npm:^1.7.9"
+    esbuild: "npm:0.21.3"
+    eslint: "npm:8.57.1"
+    eslint-config-prettier: "npm:9.1.0"
+    jest: "npm:29.7.0"
+    nodemon: "npm:3.1.9"
+    prettier: "npm:3.4.2"
+    rimraf: "npm:5.0.10"
+    typescript: "npm:5.7.2"
+    ws: "npm:^8.18.0"
+  bin:
+    pumpdotfun: dist/src/index.js
+  languageName: unknown
+  linkType: soft
 
 "punycode@npm:^2.1.0":
   version: 2.3.1

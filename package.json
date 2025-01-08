@@ -1,14 +1,14 @@
 {
   "name": "pumpdotfun",
-  "version": "0.0.1",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
-  "bin": {
-    "pumpdotfun": "dist/src/index.js"
-  },
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "./dist"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xddq/schema2typebox.git"
+    "url": "https://github.com/MattGould1/pumpdotfun"
   },
   "keywords": [
     "pumpdotfun",
@@ -20,9 +20,11 @@
   "author": "Matthew Gould <matt@saowapan.com>",
   "license": "MIT",
   "scripts": {
-    "bundle": "rimraf dist && esbuild --outdir=dist --sourcemap --bundle --platform=node --target=node20.10.0 ./src/index.ts",
-    "compile": "tsc",
+    "bundle": "rimraf dist && esbuild --outdir=dist --sourcemap --bundle --platform=node --target=node20.10.0 ./src/index.ts && tsc",
+    "compile": "rimraf dist && tsc",
     "compile:watch": "tsc -w",
+    "prepack": "yarn compile",
+    "publish": "yarn npm publish",
     "dev": "nodemon --watch src --watch test --ext ts,json --exec 'yarn bundle && yarn start'",
     "debug": "yarn bundle && node --enable-source-maps --inspect-brk ./dist/index.js",
     "debug:test": "node --inspect-brk ./node_modules/.bin/jest --runInBand .",
