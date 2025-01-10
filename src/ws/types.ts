@@ -1,4 +1,4 @@
-import { WSTradeCreated } from "src/pumpfun/types";
+import { WSTradeCreated } from "../pumpfun/types";
 
 export type ProcessedMessage =
   | {
