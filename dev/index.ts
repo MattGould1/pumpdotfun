@@ -1,10 +1,17 @@
 import assertNever from "assert-never";
 import { writeFileSync } from "fs";
-import { MessageHandler, ErrorHandler } from "../src/ws/types";
 import { WS } from "../src/ws";
 
 const main = () => {
-  const messageHandler: MessageHandler = (data) => {
+  const ws = new WS({});
+
+  ws.connect();
+
+  ws.on("open", (data) => {
+    console.log("open", data);
+  });
+
+  ws.on("message", (data) => {
     switch (data.method) {
       case "tradeCreated": {
         // Do things
@@ -14,22 +21,13 @@ const main = () => {
       default:
         return assertNever(data.method);
     }
-  };
+  });
 
-  const errorHandler: ErrorHandler = (data) => {
+  ws.on("error", (data) => {
     console.error(data.msg);
 
     writeFileSync("./error.log", `${Date.now()}:${data.msg}\n`);
-  };
-
-  const ws = new WS({
-    messageHandler,
-    errorHandler,
   });
-
-  ws.connect();
-
-  console.log("running");
 };
 
 main();

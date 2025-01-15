@@ -16,13 +16,15 @@ export type ProcessedMessage =
       data: number;
     }
   | MessageHandlerMessage
-  | {
-      error: true;
-      msg: string;
-    }
+  | ProcessMessageError
   | {
       error: false;
     };
+
+export type ProcessMessageError = {
+  error: true;
+  msg: string;
+};
 
 export type MessageHandlerMessage = {
   method: "tradeCreated";
@@ -36,6 +38,3 @@ export type ConnectionInformation = {
   pingTimeout: number;
   maxPayload: number;
 };
-
-export type MessageHandler = (data: MessageHandlerMessage) => unknown;
-export type ErrorHandler = (data: { error: true; msg: string }) => unknown;

@@ -1,43 +1,47 @@
 import WebSocket from "ws";
 import {
   ConnectionInformation,
-  ErrorHandler,
   ProcessedMessage,
-  MessageHandler,
+  ProcessMessageError,
+  MessageHandlerMessage,
 } from "./types";
 import assertNever from "assert-never";
 import isObject from "../utils/isObject";
+import { EventEmitter } from "stream";
 
 export class WS {
   private wsUrl =
     "wss://frontend-api-v2.pump.fun/socket.io/?EIO=4&transport=websocket";
-  private _ws: WebSocket | undefined;
-  private _connectionInformation: ConnectionInformation | undefined;
-  private _messageHandler: MessageHandler;
-  private _errorHandler: ErrorHandler;
-  private _isReconnecting = false;
-  private _maxReconnectionAttempts = 3;
-  private _reconnectionAttempts = 0;
 
-  constructor({
-    messageHandler,
-    errorHandler,
-  }: {
-    messageHandler: MessageHandler;
-    errorHandler: ErrorHandler;
-  }) {
-    this._messageHandler = messageHandler;
-    this._errorHandler = errorHandler;
+  private _connectionInformation: ConnectionInformation | undefined;
+  private _isReconnecting = false;
+  private _maxReconnectionAttempts: number;
+  private _reconnectionAttempts = 0;
+  private _emitter: EventEmitter;
+
+  constructor(args?: { maxReconnectionAttempts?: number }) {
+    const { maxReconnectionAttempts = 10 } = args ?? {};
+    this._maxReconnectionAttempts = maxReconnectionAttempts;
+    this._emitter = new EventEmitter();
   }
 
-  get ws() {
-    if (!this._ws) {
-      this._ws = new WebSocket(this.wsUrl, {
-        perMessageDeflate: false,
-      });
-    }
+  on(eventName: "open", listener: (data: true) => void): void;
+  on(
+    eventName: "message",
+    listener: (data: MessageHandlerMessage) => void
+  ): void;
+  on(eventName: "error", listener: (data: ProcessMessageError) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  on(eventName: string, listener: (...args: any[]) => void): void {
+    this._emitter.on(eventName, listener);
+  }
 
-    return this._ws;
+  emit(eventName: "open", data: true): void;
+  emit(eventName: "message", data: MessageHandlerMessage): void;
+  emit(eventName: "error", data: ProcessMessageError): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  emit(eventName: string, ...args: any[]) {
+    this._emitter.emit(eventName, ...args);
   }
 
   get connectionInformation() {
@@ -64,25 +68,31 @@ export class WS {
     return this._reconnectionAttempts;
   }
 
-  private initConnection(): void {
+  private initConnection(ws: WebSocket): void {
     /**
      * I have no explanation as to why this is necessary, but it is. Once the connection is established, the server expects a 40 to be sent.
      * This can be seen by viewing the network requests of pump.fun
      */
-    this.ws.send(40);
+    ws.send(40);
   }
 
-  private keepAlive(data: number): void {
-    this.ws.send(data + 1);
+  private keepAlive(ws: WebSocket, data: number): void {
+    ws.send(data + 1);
   }
 
   connect() {
-    this.ws.on("open", () => {
-      this.isReconnecting = false;
-      this.initConnection();
+    const ws = new WebSocket(this.wsUrl, {
+      perMessageDeflate: false,
     });
 
-    this.ws.on("close", (code: number) => {
+    ws.on("open", () => {
+      this.isReconnecting = false;
+      this._reconnectionAttempts = 0;
+      this.initConnection(ws);
+      this.emit("open", true);
+    });
+
+    ws.on("close", (code: number) => {
       if (this.reconnectionAttempts >= this._maxReconnectionAttempts) {
         console.error(
           `Exceeded maximum reconnection attempts. Please check your internet connection and try again.`
@@ -92,31 +102,31 @@ export class WS {
 
       console.log(`Connection closed ${code} attempting to reconnect...`);
       this.connect();
+
       this.reconnectionAttempts += 1;
       this.isReconnecting = true;
     });
 
-    this.ws.on("message", (msg: Buffer) => {
+    ws.on("message", (msg: Buffer) => {
       const processedMessage = this.processMessage(msg.toString());
       if ("error" in processedMessage) {
         if (processedMessage.error === false) {
           return;
         }
 
-        this._errorHandler(processedMessage);
+        this.emit("error", processedMessage);
         return;
       }
 
       switch (processedMessage.method) {
         case "keepAlive":
-          this.keepAlive(processedMessage.data);
+          this.keepAlive(ws, processedMessage.data);
           break;
         case "connectionInformation":
           this.connectionInformation = processedMessage.data;
           break;
         case "tradeCreated":
-          // Pass the trade over to the trade handler
-          this._messageHandler(processedMessage);
+          this.emit("message", processedMessage);
           break;
         default:
           return assertNever(processedMessage);

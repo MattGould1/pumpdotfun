@@ -1,32 +1,8 @@
 import { describe, it } from "@jest/globals";
 import { WS } from "../src/ws";
-import { ErrorHandler, MessageHandler } from "../src/ws/types";
-import assertNever from "assert-never";
-import { writeFileSync } from "fs";
-
 describe("Connecting works", () => {
   it("works", () => {
-    const messageHandler: MessageHandler = (data) => {
-      switch (data.method) {
-        case "tradeCreated": {
-          // Do things
-          break;
-        }
-        default:
-          return assertNever(data.method);
-      }
-    };
-
-    const errorHandler: ErrorHandler = (data) => {
-      console.error(data.msg);
-
-      writeFileSync("./error.log", `${Date.now()}:${data.msg}\n`);
-    };
-
-    const ws = new WS({
-      messageHandler,
-      errorHandler,
-    });
+    const ws = new WS({});
 
     ws.connect();
   });
