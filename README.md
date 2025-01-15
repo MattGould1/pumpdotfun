@@ -47,6 +47,8 @@ ws.connect();
 
 ## Running Dev
 
+To run the client locally use
+
 - yarn dev
 
 ## Disclaimer
